@@ -175,6 +175,9 @@ prompt_pure_preprompt_render() {
 		cleaned_ps1=${PROMPT##*${prompt_newline}}
 	fi
 	unset MATCH MBEGIN MEND
+	if [[ -n $preprompt_parts ]]; then
+		preprompt_parts+="$prompt_newline"
+	fi
 
 	# Construct the new prompt with a clean preprompt.
 	local -a date_line
@@ -184,7 +187,6 @@ prompt_pure_preprompt_render() {
 		${(j. .)pre_preprompt_parts}  # Join parts, space separated.
 		$prompt_newline           # Separate preprompt and prompt.
 		${(j. .)preprompt_parts}  # Join parts, space separated.
-		$prompt_newline           # Separate preprompt and prompt.
 		${(j. .)date_line}
 		$prompt_newline           # Separate preprompt and prompt.
 		$cleaned_ps1
