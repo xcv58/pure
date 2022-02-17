@@ -160,7 +160,7 @@ prompt_pure_preprompt_render() {
 	if [[ -n $prompt_pure_git_stash ]]; then
 		preprompt_parts+=('%F{$prompt_pure_colors[git:stash]}${PURE_GIT_STASH_SYMBOL:-≡}%f')
 	fi
-	if [[ -n $prompt_pure_vcs_info[name] ]]; then
+	if [[ -n $prompt_pure_vcs_info[branch] ]]; then
 		preprompt_parts+=("%F{$prompt_pure_colors[git:author]}"'${prompt_pure_vcs_info[name]} <${prompt_pure_vcs_info[email]}>%f')
 	fi
 
