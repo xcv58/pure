@@ -130,6 +130,7 @@ prompt_pure_preprompt_render() {
 
 	# Initialize the preprompt array.
 	local -a preprompt_parts
+	local -a pre_preprompt_parts
 
 	# Suspended jobs in background.
 	if ((${(M)#jobstates:#suspended:*} != 0)); then
@@ -140,12 +141,12 @@ prompt_pure_preprompt_render() {
 	[[ -n $prompt_pure_state[username] ]] && preprompt_parts+=($prompt_pure_state[username])
 
 	# Set the path.
-	preprompt_parts+=('%F{${prompt_pure_colors[path]}}%~%f')
+	pre_preprompt_parts+=('%F{${prompt_pure_colors[path]}}%~%f')
 
 	# Git branch and dirty status info.
 	typeset -gA prompt_pure_vcs_info
 	if [[ -n $prompt_pure_vcs_info[branch] ]]; then
-		preprompt_parts+=("%F{$git_color}"'${prompt_pure_vcs_info[branch]}'"%F{$git_dirty_color}"'${prompt_pure_git_dirty}%f')
+		preprompt_parts+=("%F{$git_color}"'${prompt_pure_vcs_info[branch]} '"%F{$git_dirty_color}"'${prompt_pure_git_dirty}%f')
 	fi
 	# Git action (for example, merge).
 	if [[ -n $prompt_pure_vcs_info[action] ]]; then
@@ -158,6 +159,9 @@ prompt_pure_preprompt_render() {
 	# Git stash symbol (if opted in).
 	if [[ -n $prompt_pure_git_stash ]]; then
 		preprompt_parts+=('%F{$prompt_pure_colors[git:stash]}${PURE_GIT_STASH_SYMBOL:-≡}%f')
+	fi
+	if [[ -n $prompt_pure_vcs_info[name] ]]; then
+		preprompt_parts+=("%F{$prompt_pure_colors[git:author]}"'${prompt_pure_vcs_info[name]} <${prompt_pure_vcs_info[email]}>%f')
 	fi
 
 	# Execution time.
@@ -173,9 +177,15 @@ prompt_pure_preprompt_render() {
 	unset MATCH MBEGIN MEND
 
 	# Construct the new prompt with a clean preprompt.
+	local -a date_line
+	date_line+=$(printf "%${COLUMNS}s" "$(date +'%m-%d %H:%M:%S')")
 	local -ah ps1
 	ps1=(
+		${(j. .)pre_preprompt_parts}  # Join parts, space separated.
+		$prompt_newline           # Separate preprompt and prompt.
 		${(j. .)preprompt_parts}  # Join parts, space separated.
+		$prompt_newline           # Separate preprompt and prompt.
+		${(j. .)date_line}
 		$prompt_newline           # Separate preprompt and prompt.
 		$cleaned_ps1
 	)
@@ -550,7 +560,8 @@ prompt_pure_async_callback() {
 			# Always update branch, top-level and stash.
 			prompt_pure_vcs_info[branch]=$info[branch]
 			prompt_pure_vcs_info[top]=$info[top]
-			prompt_pure_vcs_info[action]=$info[action]
+			prompt_pure_vcs_info[name]=$(git config user.name)
+			prompt_pure_vcs_info[email]=$(git config user.email)
 
 			do_render=1
 			;;
@@ -808,6 +819,7 @@ prompt_pure_setup() {
 	typeset -gA prompt_pure_colors_default prompt_pure_colors
 	prompt_pure_colors_default=(
 		execution_time       yellow
+		git:author           242
 		git:arrow            cyan
 		git:stash            cyan
 		git:branch           242
